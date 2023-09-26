@@ -2,6 +2,7 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import yfinance as yfin
+import matplotlib.pyplot as plt
 from pandas_datareader import data as pdr
 
 # Initialize Yahoo Finance
@@ -90,14 +91,18 @@ import math
 stop_loss_percentage = 0.1  # Increase the stop-loss percentage
 take_profit_percentage = 0.1  # Increase the take-profit percentage
 
+# Define windows for MA
+short_window = 50
+long_window = 200
+
 def calculate_moving_average(data, window):
     return data['Close_Price'].rolling(window=window).mean()
 
 def trading_algorithm(spx_order_book: pd.DataFrame, iei_order_book: pd.DataFrame, current_position: pd.DataFrame = None) -> tuple:
     # Parameters for risk management
     max_position_size = 5000  # Increase the maximum position size in dollars
-    short_ma_window = 50  # Short moving average period (adjust as needed)
-    long_ma_window = 200  # Long moving average period (adjust as needed)
+    short_ma_window = short_window  # Short moving average period (adjust as needed)
+    long_ma_window = long_window  # Long moving average period (adjust as needed)
 
     # Initialize cash balance to $1,000,000 if current_position is None or 'Cash' column is missing
     if current_position is None or 'Cash' not in current_position:
@@ -219,4 +224,45 @@ def format_output(function):
     IEI Latest Close: {iei_latest_close}
     IEI Quantity: {iei_qty}""")
 
+def plot_trading_strategy(spx_order_book, iei_order_book):
+    # Plot SPX and IEI closing prices
+    plt.figure(figsize=(12, 6))
+    plt.plot(spx_order_book['Date'], spx_order_book['Close_Price'], label='SPX Close Price', color='blue')
+    plt.plot(iei_order_book['Date'], iei_order_book['Close_Price'], label='IEI Close Price', color='green')
+    plt.title('SPX and IEI Closing Prices')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    # Plot SPX short and long moving averages
+    plt.figure(figsize=(12, 6))
+    plt.plot(spx_order_book['Date'], calculate_moving_average(spx_order_book, short_window), label='SPX Short MA', color='orange')
+    plt.plot(spx_order_book['Date'], calculate_moving_average(spx_order_book, long_window), label='SPX Long MA', color='red')
+    plt.title('SPX Short and Long Moving Averages')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    # Plot IEI short and long moving averages
+    plt.figure(figsize=(12, 6))
+    plt.plot(iei_order_book['Date'], calculate_moving_average(iei_order_book, short_window), label='IEI Short MA', color='purple')
+    plt.plot(iei_order_book['Date'], calculate_moving_average(iei_order_book, long_window), label='IEI Long MA', color='blue')
+    plt.title('IEI Short and Long Moving Averages')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+# Call function to get the output of the strategy
 print(format_output(trading_algorithm(spx_order_book_df, iei_order_book_df, spx_order_book_df)))
+
+# Call the function to plot the graphs
+plot_trading_strategy(spx_order_book_df, iei_order_book_df)
+
+
