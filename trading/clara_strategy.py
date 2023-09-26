@@ -220,7 +220,8 @@ def format_output(function):
 
     return (
     f"""
-    SPX Latest Close: {spx_latest_close}"
+    SPX Signal: {spx_signal}
+    SPX Latest Close: {spx_latest_close}
     SPX Quantity: {spx_qty}
     IEI Signal: {iei_signal}
     IEI Latest Close: {iei_latest_close}
