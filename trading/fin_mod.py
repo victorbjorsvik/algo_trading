@@ -63,6 +63,8 @@ iei_order_book_rows.append(create_order_book_row(date, close_price))
 # Create DataFrames
 spx_order_book_df = pd.DataFrame(spx_order_book_rows)
 iei_order_book_df = pd.DataFrame(iei_order_book_rows)
+
+
 def trading_algorithm(spx_order_book: pd.DataFrame, iei_order_book:
 pd.DataFrame, current_position: pd.DataFrame) -> tuple:
 
