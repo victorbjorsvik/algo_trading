@@ -83,7 +83,7 @@ import math
 
 """
 *We need to define our assumptions (SMART)
-*We should include some charts
+*We should include some charts (DONE!)
 
 
 """
@@ -97,6 +97,7 @@ long_window = 200
 
 def calculate_moving_average(data, window):
     return data['Close_Price'].rolling(window=window).mean()
+
 
 def trading_algorithm(spx_order_book: pd.DataFrame, iei_order_book: pd.DataFrame, current_position: pd.DataFrame = None) -> tuple:
     # Parameters for risk management
@@ -213,6 +214,7 @@ def trading_algorithm(spx_order_book: pd.DataFrame, iei_order_book: pd.DataFrame
 
     return (spx_signal, spx_latest_close, spx_qty, iei_signal, iei_latest_close, iei_qty)
 
+
 def format_output(function):
     spx_signal, spx_latest_close, spx_qty, iei_signal, iei_latest_close, iei_qty = function
 
@@ -223,6 +225,7 @@ def format_output(function):
     IEI Signal: {iei_signal}
     IEI Latest Close: {iei_latest_close}
     IEI Quantity: {iei_qty}""")
+
 
 def plot_trading_strategy(spx_order_book, iei_order_book):
     # Plot SPX and IEI closing prices
