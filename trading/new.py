@@ -95,20 +95,24 @@ take_profit_percentage = 0.1  # Increase the take-profit percentage
 short_window = 50
 long_window = 200
 
-def calculate_moving_average(data, window):
-    return data['Close_Price'].rolling(window=window).mean()
-
 
 def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFrame, current_position: pd.DataFrame, transactions:pd.DataFrame()) -> tuple:
+    def calculate_moving_average(data, window):
+        return data['Close_Price'].rolling(window=window).mean()
+
     # msci_order_book_df = pd.DataFrame(msci_order_book_rows)
     msci_order_book = msci_order_book.copy()
     tnx_order_book = tnx_order_book.copy()
 
 
     # Parameters for risk management
-    max_position_size = 1000  # Increase the maximum position size in dollars
+    max_position_size_msci = 1000  # Increase the maximum position size in quantity
+    max_position_size_tnx = 250
+
     short_ma_window = short_window  # Short moving average period (adjust as needed)
     long_ma_window = long_window  # Long moving average period (adjust as needed)
+
+    threshold = 0.12
 
     # Extract current cash balance
     current_cash = current_position['Cash'].iloc[-1]
@@ -122,7 +126,7 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
     # Trading logic for msci
     msci_latest_close = msci_order_book['Close_Price'].iloc[-1]
     msci_signal = 0  # 0 = Hold
-    msci_qty = int(current_cash / msci_order_book['Bid1_Price'].iloc[-1] * 0.05)
+    msci_qty = int(current_cash / msci_order_book['Bid1_Price'].iloc[-1] * threshold)
 
     if msci_latest_close > msci_short_ma.iloc[-1]:
         # Calculate position size based on available cash (allowing for larger positions)
@@ -160,7 +164,7 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
     # Trading logic for tnx
     tnx_latest_close = tnx_order_book['Close_Price'].iloc[-1]
     tnx_signal = 0  # 0 = Hold
-    tnx_qty = int(current_cash / msci_order_book['Bid1_Price'].iloc[-1] * 0.05)
+    tnx_qty = int(current_cash / msci_order_book['Bid1_Price'].iloc[-1] * threshold)
 
     if tnx_latest_close > tnx_short_ma.iloc[-1] and tnx_latest_close > tnx_long_ma.iloc[-1] and current_cash >= (tnx_latest_close - tnx_order_book['Bid1_Price'].iloc[-1]):
         # Calculate position size based on available cash (allowing for larger positions)
@@ -206,8 +210,8 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
     msci_qty *= max(1.0, min(1.0 + (msci_volatility.iloc[-1] - 0.025), 2.0))  # Adjust based on MSCI volatility (0.025 is a baseline)
 
     # Ensure position size does not exceed the maximum allowed
-    tnx_qty = min(tnx_qty, max_position_size)
-    msci_qty = min(msci_qty, max_position_size)
+    tnx_qty = min(tnx_qty, max_position_size_tnx)
+    msci_qty = min(msci_qty, max_position_size_msci)
 
     # TODO What to do with correlation?
     # Correlation of both
