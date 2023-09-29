@@ -87,13 +87,7 @@ import math
 
 
 """
-# Define stop-loss and take-profit percentages
-stop_loss_percentage = 0.1  # Increase the stop-loss percentage
-take_profit_percentage = 0.1  # Increase the take-profit percentage
 
-# Define windows for MA
-short_window = 50
-long_window = 200
 
 
 def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFrame, current_position: pd.DataFrame, transactions:pd.DataFrame()) -> tuple:
@@ -109,10 +103,15 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
     max_position_size_msci = 1000  # Increase the maximum position size in quantity
     max_position_size_tnx = 250
 
-    short_ma_window = short_window  # Short moving average period (adjust as needed)
-    long_ma_window = long_window  # Long moving average period (adjust as needed)
-
     threshold = 0.12
+
+    # Define stop-loss and take-profit percentages
+    stop_loss_percentage = 0.03  # Increase the stop-loss percentage
+    take_profit_percentage = 0.03  # Increase the take-profit percentage
+
+    # Define windows for MA
+    short_ma_window = 50
+    long_ma_window = 200
 
     # Extract current cash balance
     current_cash = current_position['Cash'].iloc[-1]
