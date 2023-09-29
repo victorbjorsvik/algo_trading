@@ -136,26 +136,18 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
         msci_signal = -1 if msci_qty > 0 else 0  # -1 = Sell if position size is positive
 
     # Implement stop-loss logic for msci
-    if msci_order_book['Bid1_Price'].iloc[-1] <= msci_order_book['Close_Price'].iloc[-1] * (1-stop_loss_percentage):
-        msci_signal = -1
-
-    # Initialize take-profit flag for msci
-    msci_take_profit = False
+    try:
+        if msci_order_book['Bid1_Price'].iloc[-1] <= msci_order_book['Close_Price'].iloc[-2] * (1-stop_loss_percentage):
+            msci_signal = -1
+    except IndexError:
+        pass
 
     # Implement take-profit logic for msci
-    if msci_signal == 1:
-        take_profit_price = msci_latest_close * (1 + take_profit_percentage)
-        msci_take_profit = msci_order_book['Ask1_Price'].iloc[-1] >= take_profit_price
-
-    elif msci_signal == -1:
-        take_profit_price = msci_latest_close * (1 - take_profit_percentage)
-        msci_take_profit = msci_order_book['Bid1_Price'].iloc[-1] <= take_profit_price
-
-
-
-    # Check if take-profit condition is met for msci
-    if msci_take_profit:
-        msci_signal = 0  # Exit msci position
+    try:
+        if msci_order_book['Ask1_Price'].iloc[-1] >= msci_order_book['Close_Price'].iloc[-2] * (1+stop_loss_percentage):
+            msci_signal = -1
+    except IndexError:
+        pass
 
     # Trading logic for tnx
     tnx_latest_close = tnx_order_book['Close_Price'].iloc[-1]
@@ -171,43 +163,22 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
         tnx_signal = -1 if tnx_qty > 0 else 0  # -1 = Sell if position size is positive
 
     # Implement stop-loss logic for tnx
-    if tnx_order_book['Bid1_Price'].iloc[-1] <= tnx_order_book['Close_Price'].iloc[-1] * (1-stop_loss_percentage):
-        tnx_signal = -1
-
-    # Initialize take-profit flag for tnx
-    tnx_take_profit = False
+    try:
+        if tnx_order_book['Bid1_Price'].iloc[-1] <= tnx_order_book['Close_Price'].iloc[-2] * (1-stop_loss_percentage):
+            tnx_signal = -1
+    except IndexError:
+        pass
 
     # Implement take-profit logic for tnx
-    if tnx_signal == 1:
-        take_profit_price = tnx_latest_close * (1 + take_profit_percentage)
-        tnx_take_profit = tnx_order_book['Ask1_Price'].iloc[-1] >= take_profit_price
-
-    elif tnx_signal == -1:
-        take_profit_price = tnx_latest_close * (1 - take_profit_percentage)
-        tnx_take_profit = tnx_order_book['Bid1_Price'].iloc[-1] <= take_profit_price
-
-    # Check if take-profit condition is met for tnx
-    if tnx_take_profit:
-        tnx_signal = 0  # Exit MSCI position
-
-
-    # Calculate volatility for msci and MSCI
-    tnx_volatility = tnx_order_book['Close_Price'].rolling(window=short_ma_window).std() * math.sqrt(252)  # Annualized volatility
-    msci_volatility = msci_order_book['Close_Price'].rolling(window=short_ma_window).std() * math.sqrt(252)  # Annualized volatility
-
-
-    # Reduce the impact of volatility on position sizing adjustments
-    tnx_qty *= max(1.0, min(1.0 + (tnx_volatility.iloc[-1] - 0.05), 2.0))  # Adjust based on TNX volatility (0.05 is a baseline)
-    msci_qty *= max(1.0, min(1.0 + (msci_volatility.iloc[-1] - 0.025), 2.0))  # Adjust based on MSCI volatility (0.025 is a baseline)
+    try:
+        if tnx_order_book['Ask1_Price'].iloc[-1] <= tnx_order_book['Close_Price'].iloc[-2] * (1+stop_loss_percentage):
+            tnx_signal = -1
+    except IndexError:
+        pass
 
     # Ensure position size does not exceed the maximum allowed
     tnx_qty = min(tnx_qty, max_position_size_tnx)
     msci_qty = min(msci_qty, max_position_size_msci)
-
-    # TODO What to do with correlation?
-    # Correlation of both
-    corrAll = tnx_order_book.corrwith(msci_order_book, axis=0,numeric_only=True)
-    corrClose = corrAll["Close_Price"]
 
     return (tnx_signal, tnx_latest_close, tnx_qty, msci_signal, msci_latest_close, msci_qty)
 
@@ -274,8 +245,6 @@ current_position = pd.DataFrame({
 # Initialize transactions DataFrame
 columns = ['Date', 'Qty', 'Price', 'Symbol', 'Signal']
 transactions = pd.DataFrame(columns=columns)
-
-print(tnx_order_book_df['Date'])
 
 for idx, date in enumerate(tnx_order_book_df['Date']):
     # Select the data up to and including the current date
