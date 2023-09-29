@@ -136,13 +136,8 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
         msci_signal = -1 if msci_qty > 0 else 0  # -1 = Sell if position size is positive
 
     # Implement stop-loss logic for msci
-    if msci_signal == 1:
-        stop_loss_price = msci_latest_close * (1 - stop_loss_percentage)
-        msci_signal = 0 if msci_order_book['Bid1_Price'].iloc[-1] <= stop_loss_price else 1
-
-    elif msci_signal == -1:
-        stop_loss_price = msci_latest_close * (1 + stop_loss_percentage)
-        msci_signal = 0 if msci_order_book['Ask1_Price'].iloc[-1] >= stop_loss_price else -1
+    if msci_order_book['Bid1_Price'].iloc[-1] <= msci_order_book['Close_Price'].iloc[-1]:
+        msci_signal = -1
 
     # Initialize take-profit flag for msci
     msci_take_profit = False
@@ -155,6 +150,8 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
     elif msci_signal == -1:
         take_profit_price = msci_latest_close * (1 - take_profit_percentage)
         msci_take_profit = msci_order_book['Bid1_Price'].iloc[-1] <= take_profit_price
+
+
 
     # Check if take-profit condition is met for msci
     if msci_take_profit:
@@ -174,13 +171,8 @@ def trading_algorithm(tnx_order_book: pd.DataFrame, msci_order_book: pd.DataFram
         tnx_signal = -1 if tnx_qty > 0 else 0  # -1 = Sell if position size is positive
 
     # Implement stop-loss logic for tnx
-    if tnx_signal == 1:
-        stop_loss_price = tnx_latest_close * (1 - stop_loss_percentage)
-        tnx_signal = 0 if tnx_order_book['Bid1_Price'].iloc[-1] <= stop_loss_price else 1
-
-    elif tnx_signal == -1:
-        stop_loss_price = tnx_latest_close * (1 + stop_loss_percentage)
-        tnx_signal = 0 if tnx_order_book['Ask1_Price'].iloc[-1] >= stop_loss_price else -1
+    if tnx_order_book['Bid1_Price'].iloc[-1] <= tnx_order_book['Close_Price'].iloc[-1]:
+        tnx_signal = -1
 
     # Initialize take-profit flag for tnx
     tnx_take_profit = False
